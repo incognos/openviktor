@@ -25,7 +25,11 @@ async function jiraFetch(
 		body: body ? JSON.stringify(body) : undefined,
 	});
 	let data: unknown;
-	try { data = await res.json(); } catch { data = null; }
+	try {
+		data = await res.json();
+	} catch {
+		data = null;
+	}
 	return { ok: res.ok, status: res.status, data };
 }
 
@@ -45,7 +49,8 @@ function extractAdfText(doc: unknown): string {
 
 export const jiraGetTicketDefinition: LLMToolDefinition = {
 	name: "jira_get_ticket",
-	description: "Get detailed information about a Jira ticket including summary, description, status, priority, reporter, and assignee.",
+	description:
+		"Get detailed information about a Jira ticket including summary, description, status, priority, reporter, and assignee.",
 	input_schema: {
 		type: "object",
 		properties: {
@@ -58,8 +63,12 @@ export const jiraGetTicketDefinition: LLMToolDefinition = {
 export function createJiraGetTicketExecutor(config: JiraConfig): ToolExecutor {
 	return async (args): Promise<ToolResult> => {
 		const key = args.ticket_key as string;
-		const r = await jiraFetch(config, `/issue/${key}?fields=summary,description,status,priority,reporter,assignee,created,updated`);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Jira ${r.status}: ${JSON.stringify(r.data)}` };
+		const r = await jiraFetch(
+			config,
+			`/issue/${key}?fields=summary,description,status,priority,reporter,assignee,created,updated`,
+		);
+		if (!r.ok)
+			return { output: null, durationMs: 0, error: `Jira ${r.status}: ${JSON.stringify(r.data)}` };
 		const d = r.data as Record<string, unknown>;
 		const fields = d.fields as Record<string, unknown>;
 		const reporter = fields.reporter as Record<string, unknown> | null;
@@ -90,13 +99,17 @@ export function createJiraGetTicketExecutor(config: JiraConfig): ToolExecutor {
 
 export const jiraAddCommentDefinition: LLMToolDefinition = {
 	name: "jira_add_comment",
-	description: "Add a comment to a Jira ticket. Internal comments are only visible to agents, not customers.",
+	description:
+		"Add a comment to a Jira ticket. Internal comments are only visible to agents, not customers.",
 	input_schema: {
 		type: "object",
 		properties: {
 			ticket_key: { type: "string", description: "Jira ticket key (e.g. IRP-123)" },
 			comment: { type: "string", description: "Comment text to add" },
-			internal: { type: "boolean", description: "If true, comment is internal (agents only). Default false." },
+			internal: {
+				type: "boolean",
+				description: "If true, comment is internal (agents only). Default false.",
+			},
 		},
 		required: ["ticket_key", "comment"],
 	},
@@ -120,10 +133,17 @@ export function createJiraAddCommentExecutor(config: JiraConfig): ToolExecutor {
 		}
 
 		const r = await jiraFetch(config, `/issue/${key}/comment`, "POST", body);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Jira ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return { output: null, durationMs: 0, error: `Jira ${r.status}: ${JSON.stringify(r.data)}` };
 		const d = r.data as Record<string, unknown>;
 		return {
-			output: { success: true, ticket_key: key, comment_id: d.id, internal, message: "Comment added successfully" },
+			output: {
+				success: true,
+				ticket_key: key,
+				comment_id: d.id,
+				internal,
+				message: "Comment added successfully",
+			},
 			durationMs: 0,
 		};
 	};
@@ -133,12 +153,16 @@ export function createJiraAddCommentExecutor(config: JiraConfig): ToolExecutor {
 
 export const jiraUpdateStatusDefinition: LLMToolDefinition = {
 	name: "jira_update_status",
-	description: "Update the status of a Jira ticket by transitioning it (e.g. 'In Progress', 'Resolved', 'Done').",
+	description:
+		"Update the status of a Jira ticket by transitioning it (e.g. 'In Progress', 'Resolved', 'Done').",
 	input_schema: {
 		type: "object",
 		properties: {
 			ticket_key: { type: "string", description: "Jira ticket key (e.g. IRP-123)" },
-			transition_name: { type: "string", description: "Transition to execute (e.g. 'In Progress', 'Resolved', 'Done')" },
+			transition_name: {
+				type: "string",
+				description: "Transition to execute (e.g. 'In Progress', 'Resolved', 'Done')",
+			},
 		},
 		required: ["ticket_key", "transition_name"],
 	},
@@ -151,9 +175,16 @@ export function createJiraUpdateStatusExecutor(config: JiraConfig): ToolExecutor
 
 		// Get available transitions
 		const tr = await jiraFetch(config, `/issue/${key}/transitions`);
-		if (!tr.ok) return { output: null, durationMs: 0, error: `Jira ${tr.status}: ${JSON.stringify(tr.data)}` };
+		if (!tr.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Jira ${tr.status}: ${JSON.stringify(tr.data)}`,
+			};
 
-		const transitions = (tr.data as Record<string, unknown>).transitions as Array<Record<string, unknown>>;
+		const transitions = (tr.data as Record<string, unknown>).transitions as Array<
+			Record<string, unknown>
+		>;
 		const match = transitions.find(
 			(t) => (t.name as string).toLowerCase() === transitionName.toLowerCase(),
 		);
@@ -167,11 +198,19 @@ export function createJiraUpdateStatusExecutor(config: JiraConfig): ToolExecutor
 			};
 		}
 
-		const r = await jiraFetch(config, `/issue/${key}/transitions`, "POST", { transition: { id: match.id } });
-		if (!r.ok && r.status !== 204) return { output: null, durationMs: 0, error: `Jira ${r.status}: ${JSON.stringify(r.data)}` };
+		const r = await jiraFetch(config, `/issue/${key}/transitions`, "POST", {
+			transition: { id: match.id },
+		});
+		if (!r.ok && r.status !== 204)
+			return { output: null, durationMs: 0, error: `Jira ${r.status}: ${JSON.stringify(r.data)}` };
 
 		return {
-			output: { success: true, ticket_key: key, transition: transitionName, message: `Ticket transitioned to '${transitionName}' successfully` },
+			output: {
+				success: true,
+				ticket_key: key,
+				transition: transitionName,
+				message: `Ticket transitioned to '${transitionName}' successfully`,
+			},
 			durationMs: 0,
 		};
 	};
@@ -205,7 +244,8 @@ export function createJiraSearchTicketsExecutor(config: JiraConfig): ToolExecuto
 			config,
 			`/search/jql?jql=${encodeURIComponent(jql)}&maxResults=${maxResults}&fields=summary,status,priority,reporter,created`,
 		);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Jira ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return { output: null, durationMs: 0, error: `Jira ${r.status}: ${JSON.stringify(r.data)}` };
 
 		const d = r.data as Record<string, unknown>;
 		const issues = d.issues as Array<Record<string, unknown>>;

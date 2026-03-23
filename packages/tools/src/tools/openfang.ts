@@ -4,9 +4,9 @@ import type { ToolExecutor } from "../registry.js";
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 export interface OpenFangConfig {
-	baseUrl: string;       // e.g. "http://localhost:4200"
-	apiKey?: string;       // openfang API key if auth enabled
-	slackToken?: string;   // to post results back to Slack
+	baseUrl: string; // e.g. "http://localhost:4200"
+	apiKey?: string; // openfang API key if auth enabled
+	slackToken?: string; // to post results back to Slack
 	defaultResultChannel?: string; // Slack channel to post Hand results
 }
 
@@ -19,7 +19,7 @@ async function openfangFetch(
 	body?: unknown,
 ): Promise<{ ok: boolean; status: number; data: unknown }> {
 	const headers: Record<string, string> = { "Content-Type": "application/json" };
-	if (config.apiKey) headers["Authorization"] = `Bearer ${config.apiKey}`;
+	if (config.apiKey) headers.Authorization = `Bearer ${config.apiKey}`;
 
 	const res = await fetch(`${config.baseUrl}${path}`, {
 		method,
@@ -28,7 +28,11 @@ async function openfangFetch(
 	});
 
 	let data: unknown;
-	try { data = await res.json(); } catch { data = null; }
+	try {
+		data = await res.json();
+	} catch {
+		data = null;
+	}
 
 	return { ok: res.ok, status: res.status, data };
 }
@@ -64,7 +68,8 @@ Examples: "monitor competitor X", "track mentions of our product", "generate lea
 			},
 			config: {
 				type: "object",
-				description: "Hand-specific config (e.g. {target: 'CompanyName'} for collector, {icp: '...'} for lead)",
+				description:
+					"Hand-specific config (e.g. {target: 'CompanyName'} for collector, {icp: '...'} for lead)",
 				additionalProperties: true,
 			},
 			result_channel: {
@@ -81,7 +86,8 @@ export function createOpenfangHandExecutor(config: OpenFangConfig): ToolExecutor
 		const action = args.action as string;
 		const hand = args.hand as string | undefined;
 		const handConfig = args.config as Record<string, unknown> | undefined;
-		const resultChannel = (args.result_channel as string | undefined) ?? config.defaultResultChannel;
+		const resultChannel =
+			(args.result_channel as string | undefined) ?? config.defaultResultChannel;
 
 		try {
 			if (action === "list") {
@@ -183,7 +189,7 @@ export function createOpenfangTaskExecutor(config: OpenFangConfig): ToolExecutor
 		try {
 			// Use OpenFang's OpenAI-compatible endpoint
 			const headers: Record<string, string> = { "Content-Type": "application/json" };
-			if (config.apiKey) headers["Authorization"] = `Bearer ${config.apiKey}`;
+			if (config.apiKey) headers.Authorization = `Bearer ${config.apiKey}`;
 
 			const res = await fetch(`${config.baseUrl}/v1/chat/completions`, {
 				method: "POST",
@@ -197,10 +203,14 @@ export function createOpenfangTaskExecutor(config: OpenFangConfig): ToolExecutor
 
 			if (!res.ok) {
 				const err = await res.text();
-				return { output: null, durationMs: 0, error: `OpenFang task failed (${res.status}): ${err}` };
+				return {
+					output: null,
+					durationMs: 0,
+					error: `OpenFang task failed (${res.status}): ${err}`,
+				};
 			}
 
-			const data = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+			const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
 			const content = data?.choices?.[0]?.message?.content ?? JSON.stringify(data);
 
 			return { output: { result: content, agent }, durationMs: 0 };

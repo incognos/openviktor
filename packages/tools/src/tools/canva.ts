@@ -20,7 +20,11 @@ async function canvaFetch(
 		body: body ? JSON.stringify(body) : undefined,
 	});
 	let data: unknown;
-	try { data = await res.json(); } catch { data = null; }
+	try {
+		data = await res.json();
+	} catch {
+		data = null;
+	}
 	return { ok: res.ok, status: res.status, data };
 }
 
@@ -44,13 +48,16 @@ export function createCanvaListDesignsExecutor(config: CanvaConfig): ToolExecuto
 		const limit = (args.limit as number | undefined) ?? 20;
 		const q = args.query ? `&query=${encodeURIComponent(args.query as string)}` : "";
 		const r = await canvaFetch(config, `/designs?limit=${limit}${q}`);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Canva ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return { output: null, durationMs: 0, error: `Canva ${r.status}: ${JSON.stringify(r.data)}` };
 		const d = r.data as Record<string, unknown>;
 		const items = (d.items as Array<Record<string, unknown>>) ?? [];
 		const designs = items.map((i) => ({
 			id: i.id,
 			title: i.title,
-			url: (i.urls as Record<string, unknown>)?.edit_url ?? (i.urls as Record<string, unknown>)?.view_url,
+			url:
+				(i.urls as Record<string, unknown>)?.edit_url ??
+				(i.urls as Record<string, unknown>)?.view_url,
 			created: i.created_at,
 			updated: i.updated_at,
 		}));
@@ -75,15 +82,18 @@ export const canvaGetDesignDefinition: LLMToolDefinition = {
 export function createCanvaGetDesignExecutor(config: CanvaConfig): ToolExecutor {
 	return async (args): Promise<ToolResult> => {
 		const r = await canvaFetch(config, `/designs/${args.design_id}`);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Canva ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return { output: null, durationMs: 0, error: `Canva ${r.status}: ${JSON.stringify(r.data)}` };
 		const d = r.data as Record<string, unknown>;
 		return {
 			output: {
-				id: d.id, title: d.title,
+				id: d.id,
+				title: d.title,
 				edit_url: (d.urls as Record<string, unknown>)?.edit_url,
 				view_url: (d.urls as Record<string, unknown>)?.view_url,
 				thumbnail: (d.thumbnail as Record<string, unknown>)?.url,
-				created: d.created_at, updated: d.updated_at,
+				created: d.created_at,
+				updated: d.updated_at,
 			},
 			durationMs: 0,
 		};
@@ -99,7 +109,10 @@ export const canvaCreateDesignDefinition: LLMToolDefinition = {
 		type: "object",
 		properties: {
 			title: { type: "string", description: "Design title" },
-			design_type: { type: "string", description: "Design preset type e.g. 'presentation', 'instagram_post', 'doc'" },
+			design_type: {
+				type: "string",
+				description: "Design preset type e.g. 'presentation', 'instagram_post', 'doc'",
+			},
 		},
 		required: ["title"],
 	},
@@ -110,11 +123,14 @@ export function createCanvaCreateDesignExecutor(config: CanvaConfig): ToolExecut
 		const body: Record<string, unknown> = { title: args.title };
 		if (args.design_type) body.design_type = { type: "preset", name: args.design_type };
 		const r = await canvaFetch(config, "/designs", "POST", body);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Canva ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return { output: null, durationMs: 0, error: `Canva ${r.status}: ${JSON.stringify(r.data)}` };
 		const d = (r.data as Record<string, unknown>).design as Record<string, unknown>;
 		return {
 			output: {
-				success: true, id: d.id, title: d.title,
+				success: true,
+				id: d.id,
+				title: d.title,
 				edit_url: (d.urls as Record<string, unknown>)?.edit_url,
 			},
 			durationMs: 0,
@@ -131,11 +147,34 @@ export const canvaExportDesignDefinition: LLMToolDefinition = {
 		type: "object",
 		properties: {
 			design_id: { type: "string", description: "Canva design ID" },
-			format: { type: "string", enum: ["pdf", "png", "jpg"], description: "Export format (default: pdf)" },
+			format: {
+				type: "string",
+				enum: ["pdf", "png", "jpg"],
+				description: "Export format (default: pdf)",
+			},
 		},
 		required: ["design_id"],
 	},
 };
+
+async function pollCanvaExport(
+	config: CanvaConfig,
+	jobId: string,
+	format: string,
+): Promise<ToolResult> {
+	for (let i = 0; i < 10; i++) {
+		await new Promise((res) => setTimeout(res, 3000));
+		const poll = await canvaFetch(config, `/exports/${jobId}`);
+		if (!poll.ok) continue;
+		const job = (poll.data as Record<string, unknown>).job as Record<string, unknown>;
+		if (job.status === "success") {
+			const urls = (job.urls as string[]) ?? [];
+			return { output: { success: true, format, download_urls: urls }, durationMs: 0 };
+		}
+		if (job.status === "failed") return { output: null, durationMs: 0, error: "Export job failed" };
+	}
+	return { output: null, durationMs: 0, error: "Export timed out" };
+}
 
 export function createCanvaExportDesignExecutor(config: CanvaConfig): ToolExecutor {
 	return async (args): Promise<ToolResult> => {
@@ -145,23 +184,12 @@ export function createCanvaExportDesignExecutor(config: CanvaConfig): ToolExecut
 			design_id: args.design_id,
 			format: { type: format },
 		});
-		if (!r.ok) return { output: null, durationMs: 0, error: `Canva ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return { output: null, durationMs: 0, error: `Canva ${r.status}: ${JSON.stringify(r.data)}` };
 		const d = r.data as Record<string, unknown>;
 		const jobId = (d.job as Record<string, unknown>)?.id;
 		if (!jobId) return { output: null, durationMs: 0, error: "No export job ID returned" };
 
-		// Poll for completion (up to 30s)
-		for (let i = 0; i < 10; i++) {
-			await new Promise((res) => setTimeout(res, 3000));
-			const poll = await canvaFetch(config, `/exports/${jobId}`);
-			if (!poll.ok) continue;
-			const job = (poll.data as Record<string, unknown>).job as Record<string, unknown>;
-			if (job.status === "success") {
-				const urls = job.urls as string[] ?? [];
-				return { output: { success: true, format, download_urls: urls }, durationMs: 0 };
-			}
-			if (job.status === "failed") return { output: null, durationMs: 0, error: "Export job failed" };
-		}
-		return { output: null, durationMs: 0, error: "Export timed out" };
+		return pollCanvaExport(config, jobId as string, format);
 	};
 }

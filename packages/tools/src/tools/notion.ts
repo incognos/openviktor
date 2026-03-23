@@ -22,7 +22,11 @@ async function notionFetch(
 		body: body ? JSON.stringify(body) : undefined,
 	});
 	let data: unknown;
-	try { data = await res.json(); } catch { data = null; }
+	try {
+		data = await res.json();
+	} catch {
+		data = null;
+	}
 	return { ok: res.ok, status: res.status, data };
 }
 
@@ -40,7 +44,11 @@ export const notionSearchDefinition: LLMToolDefinition = {
 		type: "object",
 		properties: {
 			query: { type: "string", description: "Search query" },
-			filter_type: { type: "string", enum: ["page", "database"], description: "Filter by object type (optional)" },
+			filter_type: {
+				type: "string",
+				enum: ["page", "database"],
+				description: "Filter by object type (optional)",
+			},
 		},
 		required: ["query"],
 	},
@@ -51,14 +59,24 @@ export function createNotionSearchExecutor(config: NotionConfig): ToolExecutor {
 		const body: Record<string, unknown> = { query: args.query as string };
 		if (args.filter_type) body.filter = { value: args.filter_type, property: "object" };
 		const r = await notionFetch(config, "/search", "POST", body);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Notion ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Notion ${r.status}: ${JSON.stringify(r.data)}`,
+			};
 		const d = r.data as Record<string, unknown>;
 		const results = (d.results as Array<Record<string, unknown>>).slice(0, 10).map((obj) => ({
 			id: obj.id,
 			type: obj.object,
-			title: obj.object === "page"
-				? extractRichText((obj.properties as Record<string, Record<string, unknown>>)?.title?.title ?? (obj.properties as Record<string, Record<string, unknown>>)?.Name?.title ?? [])
-				: extractRichText((obj as Record<string, unknown>).title as unknown[]),
+			title:
+				obj.object === "page"
+					? extractRichText(
+							(obj.properties as Record<string, Record<string, unknown>>)?.title?.title ??
+								(obj.properties as Record<string, Record<string, unknown>>)?.Name?.title ??
+								[],
+						)
+					: extractRichText((obj as Record<string, unknown>).title as unknown[]),
 			url: obj.url,
 			last_edited: obj.last_edited_time,
 		}));
@@ -87,15 +105,25 @@ export function createNotionGetPageExecutor(config: NotionConfig): ToolExecutor 
 			notionFetch(config, `/pages/${id}`),
 			notionFetch(config, `/blocks/${id}/children?page_size=50`),
 		]);
-		if (!pageRes.ok) return { output: null, durationMs: 0, error: `Notion ${pageRes.status}: ${JSON.stringify(pageRes.data)}` };
+		if (!pageRes.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Notion ${pageRes.status}: ${JSON.stringify(pageRes.data)}`,
+			};
 		const page = pageRes.data as Record<string, unknown>;
-		const blocks = blocksRes.ok ? (blocksRes.data as Record<string, unknown>).results as Array<Record<string, unknown>> : [];
-		const content = blocks.map((b) => {
-			const type = b.type as string;
-			const block = b[type] as Record<string, unknown> | undefined;
-			const text = block?.rich_text ? extractRichText(block.rich_text) : "";
-			return `[${type}] ${text}`;
-		}).filter(Boolean).join("\n");
+		const blocks = blocksRes.ok
+			? ((blocksRes.data as Record<string, unknown>).results as Array<Record<string, unknown>>)
+			: [];
+		const content = blocks
+			.map((b) => {
+				const type = b.type as string;
+				const block = b[type] as Record<string, unknown> | undefined;
+				const text = block?.rich_text ? extractRichText(block.rich_text) : "";
+				return `[${type}] ${text}`;
+			})
+			.filter(Boolean)
+			.join("\n");
 		return {
 			output: {
 				id: page.id,
@@ -117,7 +145,10 @@ export const notionCreatePageDefinition: LLMToolDefinition = {
 	input_schema: {
 		type: "object",
 		properties: {
-			database_id: { type: "string", description: "Notion database ID (uses default if not provided)" },
+			database_id: {
+				type: "string",
+				description: "Notion database ID (uses default if not provided)",
+			},
 			title: { type: "string", description: "Page title" },
 			content: { type: "string", description: "Page body content (plain text)" },
 		},
@@ -128,7 +159,12 @@ export const notionCreatePageDefinition: LLMToolDefinition = {
 export function createNotionCreatePageExecutor(config: NotionConfig): ToolExecutor {
 	return async (args): Promise<ToolResult> => {
 		const dbId = (args.database_id as string | undefined) ?? config.defaultDatabaseId;
-		if (!dbId) return { output: null, durationMs: 0, error: "No database_id provided and no default configured" };
+		if (!dbId)
+			return {
+				output: null,
+				durationMs: 0,
+				error: "No database_id provided and no default configured",
+			};
 		const body: Record<string, unknown> = {
 			parent: { database_id: dbId },
 			properties: {
@@ -136,14 +172,21 @@ export function createNotionCreatePageExecutor(config: NotionConfig): ToolExecut
 			},
 		};
 		if (args.content) {
-			body.children = [{
-				object: "block",
-				type: "paragraph",
-				paragraph: { rich_text: [{ type: "text", text: { content: args.content as string } }] },
-			}];
+			body.children = [
+				{
+					object: "block",
+					type: "paragraph",
+					paragraph: { rich_text: [{ type: "text", text: { content: args.content as string } }] },
+				},
+			];
 		}
 		const r = await notionFetch(config, "/pages", "POST", body);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Notion ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Notion ${r.status}: ${JSON.stringify(r.data)}`,
+			};
 		const d = r.data as Record<string, unknown>;
 		return { output: { success: true, id: d.id, url: d.url }, durationMs: 0 };
 	};
@@ -157,7 +200,10 @@ export const notionQueryDatabaseDefinition: LLMToolDefinition = {
 	input_schema: {
 		type: "object",
 		properties: {
-			database_id: { type: "string", description: "Notion database ID (uses default if not provided)" },
+			database_id: {
+				type: "string",
+				description: "Notion database ID (uses default if not provided)",
+			},
 			filter_property: { type: "string", description: "Property name to filter by (optional)" },
 			filter_value: { type: "string", description: "Value to filter for (optional)" },
 			max_results: { type: "number", description: "Max results (default 20)" },
@@ -169,10 +215,22 @@ export const notionQueryDatabaseDefinition: LLMToolDefinition = {
 export function createNotionQueryDatabaseExecutor(config: NotionConfig): ToolExecutor {
 	return async (args): Promise<ToolResult> => {
 		const dbId = (args.database_id as string | undefined) ?? config.defaultDatabaseId;
-		if (!dbId) return { output: null, durationMs: 0, error: "No database_id provided and no default configured" };
-		const body: Record<string, unknown> = { page_size: (args.max_results as number | undefined) ?? 20 };
+		if (!dbId)
+			return {
+				output: null,
+				durationMs: 0,
+				error: "No database_id provided and no default configured",
+			};
+		const body: Record<string, unknown> = {
+			page_size: (args.max_results as number | undefined) ?? 20,
+		};
 		const r = await notionFetch(config, `/databases/${dbId}/query`, "POST", body);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Notion ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Notion ${r.status}: ${JSON.stringify(r.data)}`,
+			};
 		const d = r.data as Record<string, unknown>;
 		const pages = (d.results as Array<Record<string, unknown>>).map((p) => {
 			const props = p.properties as Record<string, Record<string, unknown>>;

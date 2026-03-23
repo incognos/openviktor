@@ -22,7 +22,11 @@ async function famocoFetch(
 		body: body ? JSON.stringify(body) : undefined,
 	});
 	let data: unknown;
-	try { data = await res.json(); } catch { data = null; }
+	try {
+		data = await res.json();
+	} catch {
+		data = null;
+	}
 	return { ok: res.ok, status: res.status, data };
 }
 
@@ -56,11 +60,15 @@ function mapDevice(d: Record<string, unknown>): Record<string, unknown> {
 
 export const famocoSearchDeviceDefinition: LLMToolDefinition = {
 	name: "famoco_search_device",
-	description: "Search for Famoco MDM devices by partial ID (last 3 characters of the Famoco ID on the device sticker).",
+	description:
+		"Search for Famoco MDM devices by partial ID (last 3 characters of the Famoco ID on the device sticker).",
 	input_schema: {
 		type: "object",
 		properties: {
-			partial_id: { type: "string", description: "Last 3 characters of the Famoco ID (e.g. '4A2')" },
+			partial_id: {
+				type: "string",
+				description: "Last 3 characters of the Famoco ID (e.g. '4A2')",
+			},
 		},
 		required: ["partial_id"],
 	},
@@ -70,7 +78,12 @@ export function createFamocoSearchDeviceExecutor(config: FamocoConfig): ToolExec
 	return async (args): Promise<ToolResult> => {
 		const partial = args.partial_id as string;
 		const r = await famocoFetch(config, `/devices/?search=${encodeURIComponent(partial)}&limit=10`);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Famoco ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Famoco ${r.status}: ${JSON.stringify(r.data)}`,
+			};
 
 		const d = r.data as Record<string, unknown>;
 		const results = (d.results ?? d) as Array<Record<string, unknown>>;
@@ -107,7 +120,12 @@ export function createFamocoGetDeviceExecutor(config: FamocoConfig): ToolExecuto
 	return async (args): Promise<ToolResult> => {
 		const id = args.device_id as string;
 		const r = await famocoFetch(config, `/devices/${id}/`);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Famoco ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Famoco ${r.status}: ${JSON.stringify(r.data)}`,
+			};
 		return { output: mapDevice(r.data as Record<string, unknown>), durationMs: 0 };
 	};
 }
@@ -132,23 +150,41 @@ export function createFamocoMoveToStockExecutor(config: FamocoConfig): ToolExecu
 		const id = args.device_id as string;
 		// Get fleet list to find the stock fleet
 		const fleets = await famocoFetch(config, "/fleets/?limit=100");
-		if (!fleets.ok) return { output: null, durationMs: 0, error: `Famoco ${fleets.status}: failed to list fleets` };
+		if (!fleets.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Famoco ${fleets.status}: failed to list fleets`,
+			};
 
 		const fleetData = fleets.data as Record<string, unknown>;
 		const fleetList = (fleetData.results ?? fleetData) as Array<Record<string, unknown>>;
-		const stockFleet = fleetList.find(
-			(f) => (f.name as string)?.toLowerCase().includes("stock"),
-		);
+		const stockFleet = fleetList.find((f) => (f.name as string)?.toLowerCase().includes("stock"));
 
 		if (!stockFleet) {
-			return { output: null, durationMs: 0, error: "Could not find a fleet named 'stock'. Please specify the fleet ID manually using famoco_assign_fleet." };
+			return {
+				output: null,
+				durationMs: 0,
+				error:
+					"Could not find a fleet named 'stock'. Please specify the fleet ID manually using famoco_assign_fleet.",
+			};
 		}
 
 		const r = await famocoFetch(config, `/devices/${id}/`, "PATCH", { fleet: stockFleet.id });
-		if (!r.ok) return { output: null, durationMs: 0, error: `Famoco ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Famoco ${r.status}: ${JSON.stringify(r.data)}`,
+			};
 
 		return {
-			output: { success: true, device_id: id, fleet_id: stockFleet.id, message: "Device moved to stock fleet successfully" },
+			output: {
+				success: true,
+				device_id: id,
+				fleet_id: stockFleet.id,
+				message: "Device moved to stock fleet successfully",
+			},
 			durationMs: 0,
 		};
 	};
@@ -174,9 +210,19 @@ export function createFamocoAssignFleetExecutor(config: FamocoConfig): ToolExecu
 		const id = args.device_id as string;
 		const fleetId = args.fleet_id as string;
 		const r = await famocoFetch(config, `/devices/${id}/`, "PATCH", { fleet: fleetId });
-		if (!r.ok) return { output: null, durationMs: 0, error: `Famoco ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Famoco ${r.status}: ${JSON.stringify(r.data)}`,
+			};
 		return {
-			output: { success: true, device_id: id, fleet_id: fleetId, message: `Device assigned to fleet ${fleetId}` },
+			output: {
+				success: true,
+				device_id: id,
+				fleet_id: fleetId,
+				message: `Device assigned to fleet ${fleetId}`,
+			},
 			durationMs: 0,
 		};
 	};
@@ -200,7 +246,12 @@ export function createFamocoGetSyncStatusExecutor(config: FamocoConfig): ToolExe
 	return async (args): Promise<ToolResult> => {
 		const id = args.device_id as string;
 		const r = await famocoFetch(config, `/devices/${id}/`);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Famoco ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Famoco ${r.status}: ${JSON.stringify(r.data)}`,
+			};
 		const d = r.data as Record<string, unknown>;
 		return {
 			output: {
@@ -232,7 +283,12 @@ export function createFamocoTriggerSyncExecutor(config: FamocoConfig): ToolExecu
 	return async (args): Promise<ToolResult> => {
 		const id = args.device_id as string;
 		const r = await famocoFetch(config, `/devices/${id}/sync/`, "POST");
-		if (!r.ok) return { output: null, durationMs: 0, error: `Famoco ${r.status}: ${JSON.stringify(r.data)}` };
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Famoco ${r.status}: ${JSON.stringify(r.data)}`,
+			};
 		return {
 			output: { success: true, device_id: id, message: "Sync signal sent successfully" },
 			durationMs: 0,

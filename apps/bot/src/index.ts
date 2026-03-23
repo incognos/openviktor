@@ -122,7 +122,7 @@ function createToolBackend(config: ReturnType<typeof loadConfig>): {
 		linkedInCompanyName: process.env.LINKEDIN_COMPANY_NAME,
 		linkedInCompanyDescription: process.env.LINKEDIN_COMPANY_DESCRIPTION,
 		linkedInDefaultHashtags: process.env.LINKEDIN_DEFAULT_HASHTAGS,
-		linkedInRequireApproval: process.env.LINKEDIN_REQUIRE_APPROVAL !== 'false',
+		linkedInRequireApproval: process.env.LINKEDIN_REQUIRE_APPROVAL !== "false",
 	};
 	const registry = createNativeRegistry(registryConfig);
 	registerDbTools(registry, prisma);
@@ -271,7 +271,7 @@ async function main(): Promise<void> {
 		linkedInCompanyName: process.env.LINKEDIN_COMPANY_NAME,
 		linkedInCompanyDescription: process.env.LINKEDIN_COMPANY_DESCRIPTION,
 		linkedInDefaultHashtags: process.env.LINKEDIN_DEFAULT_HASHTAGS,
-		linkedInRequireApproval: process.env.LINKEDIN_REQUIRE_APPROVAL !== 'false',
+		linkedInRequireApproval: process.env.LINKEDIN_REQUIRE_APPROVAL !== "false",
 		encryptionKey: config.ENCRYPTION_KEY,
 		backend,
 	});
@@ -928,26 +928,34 @@ async function main(): Promise<void> {
 			// Sentry webhook
 			if (url.pathname === "/sentry/webhook" && req.method === "POST") {
 				try {
-					const payload = await req.json() as Record<string, unknown>;
+					const payload = (await req.json()) as Record<string, unknown>;
 					const action = payload.action as string | undefined;
-					const issue = payload.data && (payload.data as Record<string, unknown>).issue as Record<string, unknown> | undefined;
-					const project = payload.data && (payload.data as Record<string, unknown>).project as Record<string, unknown> | undefined;
+					const issue =
+						payload.data &&
+						((payload.data as Record<string, unknown>).issue as
+							| Record<string, unknown>
+							| undefined);
+					const project =
+						payload.data &&
+						((payload.data as Record<string, unknown>).project as
+							| Record<string, unknown>
+							| undefined);
 					const projectSlug = (project?.slug as string | undefined) ?? "";
 					const SENTRY_CHANNEL_MAP: Record<string, string> = {
 						"manager-mobile": "C04PPDR96T1",
-						"mobile": "C04PPDR96T1",
-						"api": "C04PPDR96T1",
-						"web": "C04PPDR96T1",
+						mobile: "C04PPDR96T1",
+						api: "C04PPDR96T1",
+						web: "C04PPDR96T1",
 						"pp-admin-mobile": "C04PPDR96T1",
 						"ticketing-backend": "C052MMEV7FY",
 						"ticketing-admin": "C052MMEV7FY",
 						"grand-tour-ticketing": "C052MMEV7FY",
-						"tripplan_backend": "C09JS1SQUFQ",
+						tripplan_backend: "C09JS1SQUFQ",
 						"tripplan_backend-o4": "C09JS1SQUFQ",
 						"scan-uic918": "C02H1NARE12",
 						"ir-rpo-mobile": "C02H1NARE12",
 						"ir-rpo-backend": "C02H1NARE12",
-						"fourtoplay": "C0ANGTNRAQZ",
+						fourtoplay: "C0ANGTNRAQZ",
 					};
 					const channel = SENTRY_CHANNEL_MAP[projectSlug] ?? process.env.SENTRY_SLACK_CHANNEL ?? "";
 					if (issue && action && channel) {
@@ -965,9 +973,12 @@ async function main(): Promise<void> {
 								blocks: [
 									{
 										type: "section",
-										text: { type: "mrkdwn", text: `:rotating_light: *[${level.toUpperCase()}] ${title}*
+										text: {
+											type: "mrkdwn",
+											text: `:rotating_light: *[${level.toUpperCase()}] ${title}*
 *Project:* ${projectSlug} | *Culprit:* ${culprit}
-<${issueUrl}|View in Sentry>` },
+<${issueUrl}|View in Sentry>`,
+										},
 									},
 								],
 							});
@@ -1017,10 +1028,16 @@ Please:
 							}
 						}
 					}
-					return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+					return new Response(JSON.stringify({ ok: true }), {
+						status: 200,
+						headers: { "Content-Type": "application/json" },
+					});
 				} catch (err) {
 					logger.error({ err }, "Sentry webhook error");
-					return new Response(JSON.stringify({ ok: false }), { status: 400, headers: { "Content-Type": "application/json" } });
+					return new Response(JSON.stringify({ ok: false }), {
+						status: 400,
+						headers: { "Content-Type": "application/json" },
+					});
 				}
 			}
 			// Dashboard API

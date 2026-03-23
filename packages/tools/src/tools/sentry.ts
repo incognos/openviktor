@@ -22,7 +22,11 @@ async function sentryFetch(
 		body: body ? JSON.stringify(body) : undefined,
 	});
 	let data: unknown;
-	try { data = await res.json(); } catch { data = null; }
+	try {
+		data = await res.json();
+	} catch {
+		data = null;
+	}
 	return { ok: res.ok, status: res.status, data };
 }
 
@@ -45,11 +49,24 @@ export const sentryListIssuesDefinition: LLMToolDefinition = {
 export function createSentryListIssuesExecutor(config: SentryConfig): ToolExecutor {
 	return async (args): Promise<ToolResult> => {
 		const project = (args.project_slug as string | undefined) ?? config.defaultProjectSlug;
-		if (!project) return { output: null, durationMs: 0, error: "No project_slug provided and no default configured" };
+		if (!project)
+			return {
+				output: null,
+				durationMs: 0,
+				error: "No project_slug provided and no default configured",
+			};
 		const query = encodeURIComponent((args.query as string | undefined) ?? "is:unresolved");
 		const limit = (args.limit as number | undefined) ?? 25;
-		const r = await sentryFetch(config, `/projects/${config.organizationSlug}/${project}/issues/?query=${query}&limit=${limit}`);
-		if (!r.ok) return { output: null, durationMs: 0, error: `Sentry ${r.status}: ${JSON.stringify(r.data)}` };
+		const r = await sentryFetch(
+			config,
+			`/projects/${config.organizationSlug}/${project}/issues/?query=${query}&limit=${limit}`,
+		);
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Sentry ${r.status}: ${JSON.stringify(r.data)}`,
+			};
 		const issues = (r.data as Array<Record<string, unknown>>).map((i) => ({
 			id: i.id,
 			title: i.title,
@@ -86,7 +103,12 @@ export function createSentryGetIssueExecutor(config: SentryConfig): ToolExecutor
 			sentryFetch(config, `/issues/${id}/`),
 			sentryFetch(config, `/issues/${id}/events/latest/`),
 		]);
-		if (!issueRes.ok) return { output: null, durationMs: 0, error: `Sentry ${issueRes.status}: ${JSON.stringify(issueRes.data)}` };
+		if (!issueRes.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Sentry ${issueRes.status}: ${JSON.stringify(issueRes.data)}`,
+			};
 		const issue = issueRes.data as Record<string, unknown>;
 		let stackTrace: string[] = [];
 		if (eventRes.ok) {
@@ -94,8 +116,13 @@ export function createSentryGetIssueExecutor(config: SentryConfig): ToolExecutor
 			const entries = (event.entries as Array<Record<string, unknown>>) ?? [];
 			const exEntry = entries.find((e) => e.type === "exception");
 			if (exEntry) {
-				const values = ((exEntry.data as Record<string, unknown>)?.values as Array<Record<string, unknown>>) ?? [];
-				const frames = (values[0]?.stacktrace as Record<string, unknown>)?.frames as Array<Record<string, unknown>> ?? [];
+				const values =
+					((exEntry.data as Record<string, unknown>)?.values as Array<Record<string, unknown>>) ??
+					[];
+				const frames =
+					((values[0]?.stacktrace as Record<string, unknown>)?.frames as Array<
+						Record<string, unknown>
+					>) ?? [];
 				stackTrace = frames.slice(-5).map((f) => `${f.filename}:${f.lineNo} in ${f.function}`);
 			}
 		}
@@ -133,7 +160,15 @@ export const sentryResolveIssueDefinition: LLMToolDefinition = {
 export function createSentryResolveIssueExecutor(config: SentryConfig): ToolExecutor {
 	return async (args): Promise<ToolResult> => {
 		const r = await sentryFetch(config, `/issues/${args.issue_id}/`, "PUT", { status: "resolved" });
-		if (!r.ok) return { output: null, durationMs: 0, error: `Sentry ${r.status}: ${JSON.stringify(r.data)}` };
-		return { output: { success: true, issue_id: args.issue_id, status: "resolved" }, durationMs: 0 };
+		if (!r.ok)
+			return {
+				output: null,
+				durationMs: 0,
+				error: `Sentry ${r.status}: ${JSON.stringify(r.data)}`,
+			};
+		return {
+			output: { success: true, issue_id: args.issue_id, status: "resolved" },
+			durationMs: 0,
+		};
 	};
 }

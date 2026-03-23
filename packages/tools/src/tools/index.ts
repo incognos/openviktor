@@ -10,6 +10,13 @@ import {
 	aiStructuredOutputDefinition,
 	createAiStructuredOutputExecutor,
 } from "./ai-structured-output.js";
+import {
+	type BannerbearConfig,
+	bannerbearCreateImageDefinition,
+	bannerbearListTemplatesDefinition,
+	createBannerbearCreateImageExecutor,
+	createBannerbearListTemplatesExecutor,
+} from "./bannerbear.js";
 import { bashDefinition, bashExecutor } from "./bash.js";
 import {
 	browserCloseSessionDefinition,
@@ -17,6 +24,17 @@ import {
 	browserDownloadFilesDefinition,
 	createBrowserExecutors,
 } from "./browser.js";
+import {
+	type CanvaConfig,
+	canvaCreateDesignDefinition,
+	canvaExportDesignDefinition,
+	canvaGetDesignDefinition,
+	canvaListDesignsDefinition,
+	createCanvaCreateDesignExecutor,
+	createCanvaExportDesignExecutor,
+	createCanvaGetDesignExecutor,
+	createCanvaListDesignsExecutor,
+} from "./canva.js";
 import { coworkerText2ImDefinition, createText2ImExecutor } from "./coworker-text2im.js";
 import {
 	createCustomApiIntegrationDefinition,
@@ -27,20 +45,145 @@ import {
 	queryLibraryDocsDefinition,
 	resolveLibraryIdDefinition,
 } from "./docs.js";
+import {
+	type FamocoConfig,
+	createFamocoAssignFleetExecutor,
+	createFamocoGetDeviceExecutor,
+	createFamocoGetSyncStatusExecutor,
+	createFamocoMoveToStockExecutor,
+	createFamocoSearchDeviceExecutor,
+	createFamocoTriggerSyncExecutor,
+	famocoAssignFleetDefinition,
+	famocoGetDeviceDefinition,
+	famocoGetSyncStatusDefinition,
+	famocoMoveToStockDefinition,
+	famocoSearchDeviceDefinition,
+	famocoTriggerSyncDefinition,
+} from "./famoco.js";
 import { fileEditDefinition, fileEditExecutor } from "./file-edit.js";
 import { fileReadDefinition, fileReadExecutor } from "./file-read.js";
 import { fileToMarkdownDefinition, fileToMarkdownExecutor } from "./file-to-markdown.js";
 import { fileWriteDefinition, fileWriteExecutor } from "./file-write.js";
 import { coworkerGitDefinition, coworkerGithubCliDefinition, createGitExecutors } from "./git.js";
+import {
+	type GitHubConfig,
+	createGithubCreateIssueExecutor,
+	createGithubCreatePrExecutor,
+	createGithubCreatePrReviewExecutor,
+	createGithubGetFileExecutor,
+	createGithubGetPrDiffExecutor,
+	createGithubGetPrExecutor,
+	createGithubListIssuesExecutor,
+	createGithubListPrsExecutor,
+	createGithubPushFileExecutor,
+	githubCreateIssueDefinition,
+	githubCreatePrDefinition,
+	githubCreatePrReviewDefinition,
+	githubGetFileDefinition,
+	githubGetPrDefinition,
+	githubGetPrDiffDefinition,
+	githubListIssuesDefinition,
+	githubListPrsDefinition,
+	githubPushFileDefinition,
+} from "./github.js";
 import { globDefinition, globExecutor } from "./glob.js";
 import { grepDefinition, grepExecutor } from "./grep.js";
+import {
+	type JiraConfig,
+	createJiraAddCommentExecutor,
+	createJiraGetTicketExecutor,
+	createJiraSearchTicketsExecutor,
+	createJiraUpdateStatusExecutor,
+	jiraAddCommentDefinition,
+	jiraGetTicketDefinition,
+	jiraSearchTicketsDefinition,
+	jiraUpdateStatusDefinition,
+} from "./jira.js";
 import {
 	createReadLearningsExecutor,
 	createWriteLearningExecutor,
 	readLearningsDefinition,
 	writeLearningDefinition,
 } from "./learnings.js";
+import {
+	type LinkedInConfig,
+	createLinkedInDraftPostExecutor,
+	createLinkedInGetRecentPostsExecutor,
+	createLinkedInPublishPostExecutor,
+	linkedInDraftPostDefinition,
+	linkedInGetRecentPostsDefinition,
+	linkedInPublishPostDefinition,
+} from "./linkedin.js";
+import {
+	type NotionConfig,
+	createNotionCreatePageExecutor,
+	createNotionGetPageExecutor,
+	createNotionQueryDatabaseExecutor,
+	createNotionSearchExecutor,
+	notionCreatePageDefinition,
+	notionGetPageDefinition,
+	notionQueryDatabaseDefinition,
+	notionSearchDefinition,
+} from "./notion.js";
+import {
+	type OpenAIImageConfig,
+	createOpenAIGenerateImageExecutor,
+	openaiGenerateImageDefinition,
+} from "./openai_image.js";
+import {
+	type OpenFangConfig,
+	createOpenfangHandExecutor,
+	createOpenfangStatusExecutor,
+	createOpenfangTaskExecutor,
+	openfangHandDefinition,
+	openfangStatusDefinition,
+	openfangTaskDefinition,
+} from "./openfang.js";
+import {
+	type PipedriveConfig,
+	createPipedriveCreateNoteExecutor,
+	createPipedriveGetDealExecutor,
+	createPipedriveListActivitiesExecutor,
+	createPipedriveSearchDealsExecutor,
+	pipedriveCreateNoteDefinition,
+	pipedriveGetDealDefinition,
+	pipedriveListActivitiesDefinition,
+	pipedriveSearchDealsDefinition,
+} from "./pipedrive.js";
+import {
+	type PlacidConfig,
+	createPlacidCreateImageExecutor,
+	createPlacidListTemplatesExecutor,
+	placidCreateImageDefinition,
+	placidListTemplatesDefinition,
+} from "./placid.js";
 import { createQuickAiSearchExecutor, quickAiSearchDefinition } from "./quick-ai-search.js";
+import {
+	type SentryConfig,
+	createSentryGetIssueExecutor,
+	createSentryListIssuesExecutor,
+	createSentryResolveIssueExecutor,
+	sentryGetIssueDefinition,
+	sentryListIssuesDefinition,
+	sentryResolveIssueDefinition,
+} from "./sentry.js";
+import {
+	type ShortcutConfig,
+	createShortcutAddCommentExecutor,
+	createShortcutCreateStoryExecutor,
+	createShortcutGetStoryExecutor,
+	createShortcutListEpicsExecutor,
+	createShortcutListWorkflowsExecutor,
+	createShortcutSearchStoriesExecutor,
+	createShortcutUpdateStoryExecutor,
+	shortcutAddCommentDefinition,
+	shortcutCreateStoryDefinition,
+	shortcutGetStoryDefinition,
+	shortcutListEpicsDefinition,
+	shortcutListWorkflowsDefinition,
+	shortcutSearchStoriesDefinition,
+	shortcutUpdateStoryDefinition,
+} from "./shortcut.js";
 import {
 	createListSkillsExecutor,
 	createReadSkillExecutor,
@@ -85,141 +228,6 @@ import {
 } from "./thread-orchestration.js";
 import { viewImageDefinition, viewImageExecutor } from "./view-image.js";
 import { workspaceTreeDefinition, workspaceTreeExecutor } from "./workspace-tree.js";
-import {	openfangHandDefinition,	openfangTaskDefinition,	openfangStatusDefinition,	createOpenfangHandExecutor,	createOpenfangTaskExecutor,	createOpenfangStatusExecutor,	type OpenFangConfig,} from './openfang.js';
-import {
-	jiraGetTicketDefinition,
-	jiraAddCommentDefinition,
-	jiraUpdateStatusDefinition,
-	jiraSearchTicketsDefinition,
-	createJiraGetTicketExecutor,
-	createJiraAddCommentExecutor,
-	createJiraUpdateStatusExecutor,
-	createJiraSearchTicketsExecutor,
-	type JiraConfig,
-} from './jira.js';
-import {
-	famocoSearchDeviceDefinition,
-	famocoGetDeviceDefinition,
-	famocoMoveToStockDefinition,
-	famocoAssignFleetDefinition,
-	famocoGetSyncStatusDefinition,
-	famocoTriggerSyncDefinition,
-	createFamocoSearchDeviceExecutor,
-	createFamocoGetDeviceExecutor,
-	createFamocoMoveToStockExecutor,
-	createFamocoAssignFleetExecutor,
-	createFamocoGetSyncStatusExecutor,
-	createFamocoTriggerSyncExecutor,
-	type FamocoConfig,
-} from './famoco.js';
-import {
-	linkedInDraftPostDefinition,
-	linkedInPublishPostDefinition,
-	linkedInGetRecentPostsDefinition,
-	createLinkedInDraftPostExecutor,
-	createLinkedInPublishPostExecutor,
-	createLinkedInGetRecentPostsExecutor,
-	type LinkedInConfig,
-} from './linkedin.js';
-import {
-	notionSearchDefinition,
-	notionGetPageDefinition,
-	notionCreatePageDefinition,
-	notionQueryDatabaseDefinition,
-	createNotionSearchExecutor,
-	createNotionGetPageExecutor,
-	createNotionCreatePageExecutor,
-	createNotionQueryDatabaseExecutor,
-	type NotionConfig,
-} from './notion.js';
-import {
-	sentryListIssuesDefinition,
-	sentryGetIssueDefinition,
-	sentryResolveIssueDefinition,
-	createSentryListIssuesExecutor,
-	createSentryGetIssueExecutor,
-	createSentryResolveIssueExecutor,
-	type SentryConfig,
-} from './sentry.js';
-import {
-	githubListIssuesDefinition,
-	githubCreateIssueDefinition,
-	githubListPrsDefinition,
-	githubGetPrDefinition,
-	githubGetFileDefinition,
-	githubGetPrDiffDefinition,
-	githubCreatePrReviewDefinition,
-	githubCreatePrDefinition,
-	githubPushFileDefinition,
-	createGithubListIssuesExecutor,
-	createGithubCreateIssueExecutor,
-	createGithubListPrsExecutor,
-	createGithubGetPrExecutor,
-	createGithubGetFileExecutor,
-	createGithubGetPrDiffExecutor,
-	createGithubCreatePrReviewExecutor,
-	createGithubCreatePrExecutor,
-	createGithubPushFileExecutor,
-	type GitHubConfig,
-} from './github.js';
-import {
-	pipedriveSearchDealsDefinition,
-	pipedriveGetDealDefinition,
-	pipedriveCreateNoteDefinition,
-	pipedriveListActivitiesDefinition,
-	createPipedriveSearchDealsExecutor,
-	createPipedriveGetDealExecutor,
-	createPipedriveCreateNoteExecutor,
-	createPipedriveListActivitiesExecutor,
-	type PipedriveConfig,
-} from './pipedrive.js';
-import {
-	canvaListDesignsDefinition,
-	canvaGetDesignDefinition,
-	canvaCreateDesignDefinition,
-	canvaExportDesignDefinition,
-	createCanvaListDesignsExecutor,
-	createCanvaGetDesignExecutor,
-	createCanvaCreateDesignExecutor,
-	createCanvaExportDesignExecutor,
-	type CanvaConfig,
-} from './canva.js';
-import {
-	shortcutGetStoryDefinition,
-	shortcutSearchStoriesDefinition,
-	shortcutCreateStoryDefinition,
-	shortcutUpdateStoryDefinition,
-	shortcutAddCommentDefinition,
-	shortcutListWorkflowsDefinition,
-	shortcutListEpicsDefinition,
-	createShortcutGetStoryExecutor,
-	createShortcutSearchStoriesExecutor,
-	createShortcutCreateStoryExecutor,
-	createShortcutUpdateStoryExecutor,
-	createShortcutAddCommentExecutor,
-	createShortcutListWorkflowsExecutor,
-	createShortcutListEpicsExecutor,
-	type ShortcutConfig,
-} from './shortcut.js';
-import {
-	openaiGenerateImageDefinition,
-	createOpenAIGenerateImageExecutor,
-	type OpenAIImageConfig,
-} from './openai_image.js';
-import {
-	bannerbearListTemplatesDefinition,
-	bannerbearCreateImageDefinition,
-	createBannerbearListTemplatesExecutor,
-	createBannerbearCreateImageExecutor,
-	type BannerbearConfig,
-} from './bannerbear.js';
-import {
-	placidListTemplatesDefinition,
-	placidCreateImageDefinition,
-	createPlacidListTemplatesExecutor,
-	createPlacidCreateImageExecutor,
-	type PlacidConfig,
-} from './placid.js';
 
 export interface RegistryConfig {
 	openfangUrl?: string;
@@ -317,9 +325,21 @@ export function createNativeRegistry(config: RegistryConfig = {}): ToolRegistry 
 			apiKey: config.openfangApiKey,
 			defaultResultChannel: config.openfangResultChannel,
 		};
-		registry.register('openfang_hand', openfangHandDefinition, createOpenfangHandExecutor(ofConfig));
-		registry.register('openfang_task', openfangTaskDefinition, createOpenfangTaskExecutor(ofConfig));
-		registry.register('openfang_status', openfangStatusDefinition, createOpenfangStatusExecutor(ofConfig));
+		registry.register(
+			"openfang_hand",
+			openfangHandDefinition,
+			createOpenfangHandExecutor(ofConfig),
+		);
+		registry.register(
+			"openfang_task",
+			openfangTaskDefinition,
+			createOpenfangTaskExecutor(ofConfig),
+		);
+		registry.register(
+			"openfang_status",
+			openfangStatusDefinition,
+			createOpenfangStatusExecutor(ofConfig),
+		);
 	}
 
 	if (config.jiraUrl && config.jiraEmail && config.jiraApiToken) {
@@ -329,10 +349,26 @@ export function createNativeRegistry(config: RegistryConfig = {}): ToolRegistry 
 			apiToken: config.jiraApiToken,
 			projectKey: config.jiraProjectKey,
 		};
-		registry.register('jira_get_ticket', jiraGetTicketDefinition, createJiraGetTicketExecutor(jiraConfig));
-		registry.register('jira_add_comment', jiraAddCommentDefinition, createJiraAddCommentExecutor(jiraConfig));
-		registry.register('jira_update_status', jiraUpdateStatusDefinition, createJiraUpdateStatusExecutor(jiraConfig));
-		registry.register('jira_search_tickets', jiraSearchTicketsDefinition, createJiraSearchTicketsExecutor(jiraConfig));
+		registry.register(
+			"jira_get_ticket",
+			jiraGetTicketDefinition,
+			createJiraGetTicketExecutor(jiraConfig),
+		);
+		registry.register(
+			"jira_add_comment",
+			jiraAddCommentDefinition,
+			createJiraAddCommentExecutor(jiraConfig),
+		);
+		registry.register(
+			"jira_update_status",
+			jiraUpdateStatusDefinition,
+			createJiraUpdateStatusExecutor(jiraConfig),
+		);
+		registry.register(
+			"jira_search_tickets",
+			jiraSearchTicketsDefinition,
+			createJiraSearchTicketsExecutor(jiraConfig),
+		);
 	}
 
 	if (config.famocoApiKey && config.famocoApiUrl) {
@@ -340,99 +376,287 @@ export function createNativeRegistry(config: RegistryConfig = {}): ToolRegistry 
 			apiKey: config.famocoApiKey,
 			apiUrl: config.famocoApiUrl,
 		};
-		registry.register('famoco_search_device', famocoSearchDeviceDefinition, createFamocoSearchDeviceExecutor(famocoConfig));
-		registry.register('famoco_get_device', famocoGetDeviceDefinition, createFamocoGetDeviceExecutor(famocoConfig));
-		registry.register('famoco_move_to_stock', famocoMoveToStockDefinition, createFamocoMoveToStockExecutor(famocoConfig));
-		registry.register('famoco_assign_fleet', famocoAssignFleetDefinition, createFamocoAssignFleetExecutor(famocoConfig));
-		registry.register('famoco_get_sync_status', famocoGetSyncStatusDefinition, createFamocoGetSyncStatusExecutor(famocoConfig));
-		registry.register('famoco_trigger_sync', famocoTriggerSyncDefinition, createFamocoTriggerSyncExecutor(famocoConfig));
+		registry.register(
+			"famoco_search_device",
+			famocoSearchDeviceDefinition,
+			createFamocoSearchDeviceExecutor(famocoConfig),
+		);
+		registry.register(
+			"famoco_get_device",
+			famocoGetDeviceDefinition,
+			createFamocoGetDeviceExecutor(famocoConfig),
+		);
+		registry.register(
+			"famoco_move_to_stock",
+			famocoMoveToStockDefinition,
+			createFamocoMoveToStockExecutor(famocoConfig),
+		);
+		registry.register(
+			"famoco_assign_fleet",
+			famocoAssignFleetDefinition,
+			createFamocoAssignFleetExecutor(famocoConfig),
+		);
+		registry.register(
+			"famoco_get_sync_status",
+			famocoGetSyncStatusDefinition,
+			createFamocoGetSyncStatusExecutor(famocoConfig),
+		);
+		registry.register(
+			"famoco_trigger_sync",
+			famocoTriggerSyncDefinition,
+			createFamocoTriggerSyncExecutor(famocoConfig),
+		);
 	}
 
 	if (config.linkedInAccessToken && config.linkedInOrganizationUrn) {
 		const liConfig: LinkedInConfig = {
 			accessToken: config.linkedInAccessToken,
 			organizationUrn: config.linkedInOrganizationUrn,
-			companyName: config.linkedInCompanyName ?? 'the company',
+			companyName: config.linkedInCompanyName ?? "the company",
 			companyDescription: config.linkedInCompanyDescription,
-			defaultHashtags: config.linkedInDefaultHashtags?.split(',').map(h => h.trim()).filter(Boolean),
+			defaultHashtags: config.linkedInDefaultHashtags
+				?.split(",")
+				.map((h) => h.trim())
+				.filter(Boolean),
 			requireApproval: config.linkedInRequireApproval !== false,
 		};
-		registry.register('linkedin_draft_post', linkedInDraftPostDefinition, createLinkedInDraftPostExecutor(liConfig));
-		registry.register('linkedin_publish_post', linkedInPublishPostDefinition, createLinkedInPublishPostExecutor(liConfig));
-		registry.register('linkedin_get_recent_posts', linkedInGetRecentPostsDefinition, createLinkedInGetRecentPostsExecutor(liConfig));
+		registry.register(
+			"linkedin_draft_post",
+			linkedInDraftPostDefinition,
+			createLinkedInDraftPostExecutor(liConfig),
+		);
+		registry.register(
+			"linkedin_publish_post",
+			linkedInPublishPostDefinition,
+			createLinkedInPublishPostExecutor(liConfig),
+		);
+		registry.register(
+			"linkedin_get_recent_posts",
+			linkedInGetRecentPostsDefinition,
+			createLinkedInGetRecentPostsExecutor(liConfig),
+		);
 	}
 
-
 	if (config.notionApiToken) {
-		const notionConfig: NotionConfig = { apiToken: config.notionApiToken, defaultDatabaseId: config.notionDefaultDatabaseId };
-		registry.register('notion_search', notionSearchDefinition, createNotionSearchExecutor(notionConfig));
-		registry.register('notion_get_page', notionGetPageDefinition, createNotionGetPageExecutor(notionConfig));
-		registry.register('notion_create_page', notionCreatePageDefinition, createNotionCreatePageExecutor(notionConfig));
-		registry.register('notion_query_database', notionQueryDatabaseDefinition, createNotionQueryDatabaseExecutor(notionConfig));
+		const notionConfig: NotionConfig = {
+			apiToken: config.notionApiToken,
+			defaultDatabaseId: config.notionDefaultDatabaseId,
+		};
+		registry.register(
+			"notion_search",
+			notionSearchDefinition,
+			createNotionSearchExecutor(notionConfig),
+		);
+		registry.register(
+			"notion_get_page",
+			notionGetPageDefinition,
+			createNotionGetPageExecutor(notionConfig),
+		);
+		registry.register(
+			"notion_create_page",
+			notionCreatePageDefinition,
+			createNotionCreatePageExecutor(notionConfig),
+		);
+		registry.register(
+			"notion_query_database",
+			notionQueryDatabaseDefinition,
+			createNotionQueryDatabaseExecutor(notionConfig),
+		);
 	}
 
 	if (config.sentryAuthToken && config.sentryOrganizationSlug) {
-		const sentryConfig: SentryConfig = { authToken: config.sentryAuthToken, organizationSlug: config.sentryOrganizationSlug, defaultProjectSlug: config.sentryDefaultProjectSlug };
-		registry.register('sentry_list_issues', sentryListIssuesDefinition, createSentryListIssuesExecutor(sentryConfig));
-		registry.register('sentry_get_issue', sentryGetIssueDefinition, createSentryGetIssueExecutor(sentryConfig));
-		registry.register('sentry_resolve_issue', sentryResolveIssueDefinition, createSentryResolveIssueExecutor(sentryConfig));
+		const sentryConfig: SentryConfig = {
+			authToken: config.sentryAuthToken,
+			organizationSlug: config.sentryOrganizationSlug,
+			defaultProjectSlug: config.sentryDefaultProjectSlug,
+		};
+		registry.register(
+			"sentry_list_issues",
+			sentryListIssuesDefinition,
+			createSentryListIssuesExecutor(sentryConfig),
+		);
+		registry.register(
+			"sentry_get_issue",
+			sentryGetIssueDefinition,
+			createSentryGetIssueExecutor(sentryConfig),
+		);
+		registry.register(
+			"sentry_resolve_issue",
+			sentryResolveIssueDefinition,
+			createSentryResolveIssueExecutor(sentryConfig),
+		);
 	}
 
 	if (config.githubApiToken) {
-		const ghConfig: GitHubConfig = { token: config.githubApiToken, defaultOwner: config.githubDefaultOwner, defaultRepo: config.githubDefaultRepo };
-		registry.register('github_list_issues', githubListIssuesDefinition, createGithubListIssuesExecutor(ghConfig));
-		registry.register('github_create_issue', githubCreateIssueDefinition, createGithubCreateIssueExecutor(ghConfig));
-		registry.register('github_list_prs', githubListPrsDefinition, createGithubListPrsExecutor(ghConfig));
-		registry.register('github_get_pr', githubGetPrDefinition, createGithubGetPrExecutor(ghConfig));
-		registry.register('github_get_file', githubGetFileDefinition, createGithubGetFileExecutor(ghConfig));
-		registry.register('github_get_pr_diff', githubGetPrDiffDefinition, createGithubGetPrDiffExecutor(ghConfig));
-		registry.register('github_create_pr_review', githubCreatePrReviewDefinition, createGithubCreatePrReviewExecutor(ghConfig));
-		registry.register('github_create_pr', githubCreatePrDefinition, createGithubCreatePrExecutor(ghConfig));
-		registry.register('github_push_file', githubPushFileDefinition, createGithubPushFileExecutor(ghConfig));
+		const ghConfig: GitHubConfig = {
+			token: config.githubApiToken,
+			defaultOwner: config.githubDefaultOwner,
+			defaultRepo: config.githubDefaultRepo,
+		};
+		registry.register(
+			"github_list_issues",
+			githubListIssuesDefinition,
+			createGithubListIssuesExecutor(ghConfig),
+		);
+		registry.register(
+			"github_create_issue",
+			githubCreateIssueDefinition,
+			createGithubCreateIssueExecutor(ghConfig),
+		);
+		registry.register(
+			"github_list_prs",
+			githubListPrsDefinition,
+			createGithubListPrsExecutor(ghConfig),
+		);
+		registry.register("github_get_pr", githubGetPrDefinition, createGithubGetPrExecutor(ghConfig));
+		registry.register(
+			"github_get_file",
+			githubGetFileDefinition,
+			createGithubGetFileExecutor(ghConfig),
+		);
+		registry.register(
+			"github_get_pr_diff",
+			githubGetPrDiffDefinition,
+			createGithubGetPrDiffExecutor(ghConfig),
+		);
+		registry.register(
+			"github_create_pr_review",
+			githubCreatePrReviewDefinition,
+			createGithubCreatePrReviewExecutor(ghConfig),
+		);
+		registry.register(
+			"github_create_pr",
+			githubCreatePrDefinition,
+			createGithubCreatePrExecutor(ghConfig),
+		);
+		registry.register(
+			"github_push_file",
+			githubPushFileDefinition,
+			createGithubPushFileExecutor(ghConfig),
+		);
 	}
 
 	if (config.pipedriveApiToken && config.pipedriveDomain) {
-		const pdConfig: PipedriveConfig = { apiToken: config.pipedriveApiToken, companyDomain: config.pipedriveDomain };
-		registry.register('pipedrive_search_deals', pipedriveSearchDealsDefinition, createPipedriveSearchDealsExecutor(pdConfig));
-		registry.register('pipedrive_get_deal', pipedriveGetDealDefinition, createPipedriveGetDealExecutor(pdConfig));
+		const pdConfig: PipedriveConfig = {
+			apiToken: config.pipedriveApiToken,
+			companyDomain: config.pipedriveDomain,
+		};
+		registry.register(
+			"pipedrive_search_deals",
+			pipedriveSearchDealsDefinition,
+			createPipedriveSearchDealsExecutor(pdConfig),
+		);
+		registry.register(
+			"pipedrive_get_deal",
+			pipedriveGetDealDefinition,
+			createPipedriveGetDealExecutor(pdConfig),
+		);
 		// pipedrive_create_note disabled (read-only token)
-		registry.register('pipedrive_list_activities', pipedriveListActivitiesDefinition, createPipedriveListActivitiesExecutor(pdConfig));
+		registry.register(
+			"pipedrive_list_activities",
+			pipedriveListActivitiesDefinition,
+			createPipedriveListActivitiesExecutor(pdConfig),
+		);
 	}
 
 	if (config.canvaAccessToken) {
 		const canvaConfig: CanvaConfig = { accessToken: config.canvaAccessToken };
-		registry.register('canva_list_designs', canvaListDesignsDefinition, createCanvaListDesignsExecutor(canvaConfig));
-		registry.register('canva_get_design', canvaGetDesignDefinition, createCanvaGetDesignExecutor(canvaConfig));
-		registry.register('canva_create_design', canvaCreateDesignDefinition, createCanvaCreateDesignExecutor(canvaConfig));
-		registry.register('canva_export_design', canvaExportDesignDefinition, createCanvaExportDesignExecutor(canvaConfig));
+		registry.register(
+			"canva_list_designs",
+			canvaListDesignsDefinition,
+			createCanvaListDesignsExecutor(canvaConfig),
+		);
+		registry.register(
+			"canva_get_design",
+			canvaGetDesignDefinition,
+			createCanvaGetDesignExecutor(canvaConfig),
+		);
+		registry.register(
+			"canva_create_design",
+			canvaCreateDesignDefinition,
+			createCanvaCreateDesignExecutor(canvaConfig),
+		);
+		registry.register(
+			"canva_export_design",
+			canvaExportDesignDefinition,
+			createCanvaExportDesignExecutor(canvaConfig),
+		);
 	}
 
 	if (config.shortcutApiToken) {
 		const scConfig: ShortcutConfig = { apiToken: config.shortcutApiToken };
-		registry.register('shortcut_get_story', shortcutGetStoryDefinition, createShortcutGetStoryExecutor(scConfig));
-		registry.register('shortcut_search_stories', shortcutSearchStoriesDefinition, createShortcutSearchStoriesExecutor(scConfig));
-		registry.register('shortcut_create_story', shortcutCreateStoryDefinition, createShortcutCreateStoryExecutor(scConfig));
-		registry.register('shortcut_update_story', shortcutUpdateStoryDefinition, createShortcutUpdateStoryExecutor(scConfig));
-		registry.register('shortcut_add_comment', shortcutAddCommentDefinition, createShortcutAddCommentExecutor(scConfig));
-		registry.register('shortcut_list_workflows', shortcutListWorkflowsDefinition, createShortcutListWorkflowsExecutor(scConfig));
-		registry.register('shortcut_list_epics', shortcutListEpicsDefinition, createShortcutListEpicsExecutor(scConfig));
+		registry.register(
+			"shortcut_get_story",
+			shortcutGetStoryDefinition,
+			createShortcutGetStoryExecutor(scConfig),
+		);
+		registry.register(
+			"shortcut_search_stories",
+			shortcutSearchStoriesDefinition,
+			createShortcutSearchStoriesExecutor(scConfig),
+		);
+		registry.register(
+			"shortcut_create_story",
+			shortcutCreateStoryDefinition,
+			createShortcutCreateStoryExecutor(scConfig),
+		);
+		registry.register(
+			"shortcut_update_story",
+			shortcutUpdateStoryDefinition,
+			createShortcutUpdateStoryExecutor(scConfig),
+		);
+		registry.register(
+			"shortcut_add_comment",
+			shortcutAddCommentDefinition,
+			createShortcutAddCommentExecutor(scConfig),
+		);
+		registry.register(
+			"shortcut_list_workflows",
+			shortcutListWorkflowsDefinition,
+			createShortcutListWorkflowsExecutor(scConfig),
+		);
+		registry.register(
+			"shortcut_list_epics",
+			shortcutListEpicsDefinition,
+			createShortcutListEpicsExecutor(scConfig),
+		);
 	}
 
 	if (config.openaiApiKey) {
 		const oaiConfig: OpenAIImageConfig = { apiKey: config.openaiApiKey };
-		registry.register('openai_generate_image', openaiGenerateImageDefinition, createOpenAIGenerateImageExecutor(oaiConfig));
+		registry.register(
+			"openai_generate_image",
+			openaiGenerateImageDefinition,
+			createOpenAIGenerateImageExecutor(oaiConfig),
+		);
 	}
 
 	if (config.bannerbearApiKey) {
 		const bbConfig: BannerbearConfig = { apiKey: config.bannerbearApiKey };
-		registry.register('bannerbear_list_templates', bannerbearListTemplatesDefinition, createBannerbearListTemplatesExecutor(bbConfig));
-		registry.register('bannerbear_create_image', bannerbearCreateImageDefinition, createBannerbearCreateImageExecutor(bbConfig));
+		registry.register(
+			"bannerbear_list_templates",
+			bannerbearListTemplatesDefinition,
+			createBannerbearListTemplatesExecutor(bbConfig),
+		);
+		registry.register(
+			"bannerbear_create_image",
+			bannerbearCreateImageDefinition,
+			createBannerbearCreateImageExecutor(bbConfig),
+		);
 	}
 
 	if (config.placidApiToken) {
 		const placidConfig: PlacidConfig = { apiToken: config.placidApiToken };
-		registry.register('placid_list_templates', placidListTemplatesDefinition, createPlacidListTemplatesExecutor(placidConfig));
-		registry.register('placid_create_image', placidCreateImageDefinition, createPlacidCreateImageExecutor(placidConfig));
+		registry.register(
+			"placid_list_templates",
+			placidListTemplatesDefinition,
+			createPlacidListTemplatesExecutor(placidConfig),
+		);
+		registry.register(
+			"placid_create_image",
+			placidCreateImageDefinition,
+			createPlacidCreateImageExecutor(placidConfig),
+		);
 	}
 
 	if (config.slackToken) {

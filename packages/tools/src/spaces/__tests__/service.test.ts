@@ -85,9 +85,7 @@ describe("SpacesService", () => {
 		expect(result.convexUrlProd).toBe("https://prod.convex.cloud");
 		expect(result.sandboxPath).toBe("/data/workspaces/ws1/viktor-spaces/test");
 		expect(mockPrisma.space.create).toHaveBeenCalledOnce();
-		expect(mockConvex.createProject).toHaveBeenCalledWith(
-			"test",
-		);
+		expect(mockConvex.createProject).toHaveBeenCalledWith("test");
 	});
 
 	it("deploys a space to preview", async () => {
