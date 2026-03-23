@@ -157,6 +157,19 @@ import {
 	placidCreateImageDefinition,
 	placidListTemplatesDefinition,
 } from "./placid.js";
+import {
+	plausibleGetStatsDefinition,
+	plausibleTopPagesDefinition,
+	plausibleTopSourcesDefinition,
+	plausibleRealtimeDefinition,
+	plausibleBreakdownDefinition,
+	createPlausibleGetStatsExecutor,
+	createPlausibleTopPagesExecutor,
+	createPlausibleTopSourcesExecutor,
+	createPlausibleRealtimeExecutor,
+	createPlausibleBreakdownExecutor,
+	type PlausibleConfig,
+} from "./plausible.js";
 import { createQuickAiSearchExecutor, quickAiSearchDefinition } from "./quick-ai-search.js";
 import {
 	type SentryConfig,
@@ -260,6 +273,8 @@ export interface RegistryConfig {
 	openaiApiKey?: string;
 	bannerbearApiKey?: string;
 	placidApiToken?: string;
+	plausibleApiKey?: string;
+	plausibleDefaultSiteId?: string;
 	slackToken?: string;
 	githubToken?: string;
 	browserbaseApiKey?: string;
@@ -657,6 +672,15 @@ export function createNativeRegistry(config: RegistryConfig = {}): ToolRegistry 
 			placidCreateImageDefinition,
 			createPlacidCreateImageExecutor(placidConfig),
 		);
+	}
+
+	if (config.plausibleApiKey) {
+		const plausibleConfig: PlausibleConfig = { apiKey: config.plausibleApiKey, defaultSiteId: config.plausibleDefaultSiteId };
+		registry.register("plausible_get_stats", plausibleGetStatsDefinition, createPlausibleGetStatsExecutor(plausibleConfig));
+		registry.register("plausible_top_pages", plausibleTopPagesDefinition, createPlausibleTopPagesExecutor(plausibleConfig));
+		registry.register("plausible_top_sources", plausibleTopSourcesDefinition, createPlausibleTopSourcesExecutor(plausibleConfig));
+		registry.register("plausible_realtime", plausibleRealtimeDefinition, createPlausibleRealtimeExecutor(plausibleConfig));
+		registry.register("plausible_breakdown", plausibleBreakdownDefinition, createPlausibleBreakdownExecutor(plausibleConfig));
 	}
 
 	if (config.slackToken) {
