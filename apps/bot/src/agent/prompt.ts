@@ -51,7 +51,7 @@ function triggerLabel(triggerType: TriggerType): string {
 }
 
 function buildSpecializedPrompt(name: string, prompt: string, preamble?: string): string {
-	const lines = [`You are OpenViktor, an AI coworker in the "${name}" Slack workspace.`];
+	const lines = [`You are Vicky, an AI coworker in the "${name}" Slack workspace.`];
 	if (preamble) lines.push(preamble);
 	lines.push("", prompt);
 	return lines.join("\n");
@@ -90,7 +90,7 @@ export function buildSystemPrompt(ctx: PromptContext): string {
 
 function buildCronPrompt(ctx: PromptContext): string {
 	const lines = [
-		`You are OpenViktor, an AI coworker in the "${ctx.workspaceName}" Slack workspace.`,
+		`You are Vicky, an AI coworker in the "${ctx.workspaceName}" Slack workspace.`,
 		`You are executing a scheduled cron job: "${ctx.cronJobName ?? "Unknown"}".`,
 		"",
 	];
@@ -123,7 +123,7 @@ function buildCronPrompt(ctx: PromptContext): string {
 
 function buildInteractivePrompt(ctx: PromptContext): string {
 	const lines = [
-		`You are OpenViktor, an AI coworker in the "${ctx.workspaceName}" Slack workspace.`,
+		`You are Vicky, an AI coworker in the "${ctx.workspaceName}" Slack workspace.`,
 		"You are helpful, knowledgeable, and concise. You communicate like a capable team member — clear, direct, and friendly.",
 		"",
 		"## Startup",

@@ -108,6 +108,21 @@ function createToolBackend(config: ReturnType<typeof loadConfig>): {
 		imagenApiKey: config.IMAGEN_API_KEY,
 		llmProvider,
 		defaultModel: config.DEFAULT_MODEL,
+		openfangUrl: process.env.OPENFANG_URL,
+		openfangApiKey: process.env.OPENFANG_API_KEY,
+		openfangResultChannel: process.env.OPENFANG_RESULT_CHANNEL,
+		jiraUrl: process.env.JIRA_URL,
+		jiraEmail: process.env.JIRA_EMAIL,
+		jiraApiToken: process.env.JIRA_API_TOKEN,
+		jiraProjectKey: process.env.JIRA_PROJECT_KEY,
+		famocoApiKey: process.env.FAMOCO_API_KEY,
+		famocoApiUrl: process.env.FAMOCO_API_URL,
+		linkedInAccessToken: process.env.LINKEDIN_ACCESS_TOKEN,
+		linkedInOrganizationUrn: process.env.LINKEDIN_ORGANIZATION_URN,
+		linkedInCompanyName: process.env.LINKEDIN_COMPANY_NAME,
+		linkedInCompanyDescription: process.env.LINKEDIN_COMPANY_DESCRIPTION,
+		linkedInDefaultHashtags: process.env.LINKEDIN_DEFAULT_HASHTAGS,
+		linkedInRequireApproval: process.env.LINKEDIN_REQUIRE_APPROVAL !== 'false',
 	};
 	const registry = createNativeRegistry(registryConfig);
 	registerDbTools(registry, prisma);
@@ -242,6 +257,21 @@ async function main(): Promise<void> {
 		heartbeatEnabled: config.HEARTBEAT_ENABLED,
 		slackToken: config.SLACK_BOT_TOKEN ?? "",
 		defaultModel: config.DEFAULT_MODEL,
+		openfangUrl: process.env.OPENFANG_URL,
+		openfangApiKey: process.env.OPENFANG_API_KEY,
+		openfangResultChannel: process.env.OPENFANG_RESULT_CHANNEL,
+		jiraUrl: process.env.JIRA_URL,
+		jiraEmail: process.env.JIRA_EMAIL,
+		jiraApiToken: process.env.JIRA_API_TOKEN,
+		jiraProjectKey: process.env.JIRA_PROJECT_KEY,
+		famocoApiKey: process.env.FAMOCO_API_KEY,
+		famocoApiUrl: process.env.FAMOCO_API_URL,
+		linkedInAccessToken: process.env.LINKEDIN_ACCESS_TOKEN,
+		linkedInOrganizationUrn: process.env.LINKEDIN_ORGANIZATION_URN,
+		linkedInCompanyName: process.env.LINKEDIN_COMPANY_NAME,
+		linkedInCompanyDescription: process.env.LINKEDIN_COMPANY_DESCRIPTION,
+		linkedInDefaultHashtags: process.env.LINKEDIN_DEFAULT_HASHTAGS,
+		linkedInRequireApproval: process.env.LINKEDIN_REQUIRE_APPROVAL !== 'false',
 		encryptionKey: config.ENCRYPTION_KEY,
 		backend,
 	});
@@ -895,6 +925,104 @@ async function main(): Promise<void> {
 				return response;
 			}
 
+			// Sentry webhook
+			if (url.pathname === "/sentry/webhook" && req.method === "POST") {
+				try {
+					const payload = await req.json() as Record<string, unknown>;
+					const action = payload.action as string | undefined;
+					const issue = payload.data && (payload.data as Record<string, unknown>).issue as Record<string, unknown> | undefined;
+					const project = payload.data && (payload.data as Record<string, unknown>).project as Record<string, unknown> | undefined;
+					const projectSlug = (project?.slug as string | undefined) ?? "";
+					const SENTRY_CHANNEL_MAP: Record<string, string> = {
+						"manager-mobile": "C04PPDR96T1",
+						"mobile": "C04PPDR96T1",
+						"api": "C04PPDR96T1",
+						"web": "C04PPDR96T1",
+						"pp-admin-mobile": "C04PPDR96T1",
+						"ticketing-backend": "C052MMEV7FY",
+						"ticketing-admin": "C052MMEV7FY",
+						"grand-tour-ticketing": "C052MMEV7FY",
+						"tripplan_backend": "C09JS1SQUFQ",
+						"tripplan_backend-o4": "C09JS1SQUFQ",
+						"scan-uic918": "C02H1NARE12",
+						"ir-rpo-mobile": "C02H1NARE12",
+						"ir-rpo-backend": "C02H1NARE12",
+						"fourtoplay": "C0ANGTNRAQZ",
+					};
+					const channel = SENTRY_CHANNEL_MAP[projectSlug] ?? process.env.SENTRY_SLACK_CHANNEL ?? "";
+					if (issue && action && channel) {
+						const title = (issue.title as string) ?? "Unknown issue";
+						const level = (issue.level as string) ?? "error";
+						const issueUrl = (issue.web_url as string) ?? "";
+						const issueId = (issue.id as string) ?? "";
+						const culprit = (issue.culprit as string) ?? "";
+						const slackClient = slackApp?.client;
+						if (slackClient) {
+							// Post initial notification
+							const notifMsg = await slackClient.chat.postMessage({
+								channel,
+								text: `Sentry ${action} [${projectSlug}]: ${title}`,
+								blocks: [
+									{
+										type: "section",
+										text: { type: "mrkdwn", text: `:rotating_light: *[${level.toUpperCase()}] ${title}*
+*Project:* ${projectSlug} | *Culprit:* ${culprit}
+<${issueUrl}|View in Sentry>` },
+									},
+								],
+							});
+							const threadTs = (notifMsg as Record<string, unknown>).ts as string | undefined;
+							if (threadTs) {
+								// Post "analyzing" in thread
+								await slackClient.chat.postMessage({
+									channel,
+									thread_ts: threadTs,
+									text: ":mag: Analyzing issue...",
+								});
+								// Find workspace and trigger agent analysis
+								const ws = await prisma.workspace.findFirst();
+								if (ws) {
+									const analyzePrompt = `A new Sentry error has been reported in the ${projectSlug} project.
+
+Issue: ${title}
+Level: ${level}
+Culprit: ${culprit}
+Sentry URL: ${issueUrl}
+Issue ID: ${issueId}
+
+Please:
+1. Use the sentry_get_issue tool to fetch the full stack trace for issue ID ${issueId}
+2. Analyze the root cause based on the stack trace and culprit
+3. If GitHub is available, look up the relevant source file to understand the context
+4. Provide a clear assessment: what broke, why, and a suggested fix
+5. Keep the response concise and actionable for developers`;
+
+									void runner.run({
+										workspaceId: ws.id,
+										memberId: "system",
+										triggerType: "message",
+										slackChannel: channel,
+										slackThreadTs: threadTs,
+										userMessage: analyzePrompt,
+										promptContext: {
+											workspaceName: ws.slackTeamName,
+											channel,
+											slackThreadTs: threadTs,
+											userMessageTs: threadTs,
+											triggerType: "message",
+											userName: "Sentry",
+										},
+									});
+								}
+							}
+						}
+					}
+					return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+				} catch (err) {
+					logger.error({ err }, "Sentry webhook error");
+					return new Response(JSON.stringify({ ok: false }), { status: 400, headers: { "Content-Type": "application/json" } });
+				}
+			}
 			// Dashboard API
 			if (url.pathname.startsWith("/api/") && dashboardApi) {
 				const response = await dashboardApi.fetch(req);
